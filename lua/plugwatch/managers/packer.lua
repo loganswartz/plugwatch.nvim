@@ -1,3 +1,5 @@
+local PluginManager = require('plugwatch.types').PluginManager
+
 local packer = PluginManager:new({
     are_using = function()
         return _G.packer_plugins ~= nil

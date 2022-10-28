@@ -1,5 +1,12 @@
 local M = {}
 
+---@class PluginManager
+---@field new fun(obj: table): PluginManager
+---@field are_using fun(): boolean
+---@field get_plugins fun(): { [string]: string } A mapping of plugin names to filepaths
+---@field setup_refresh fun(callback: fun()) A mapping of plugin names to filepaths
+
+---@type PluginManager
 M.PluginManager = {}
 M.PluginManager.__index = M.PluginManager
 

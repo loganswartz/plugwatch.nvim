@@ -3,6 +3,7 @@ local updates = require('plugwatch.updates')
 
 local M = {}
 
+---@param step number
 local function increment_count(step)
     vim.g.plugwatch_updates_count = vim.g.plugwatch_updates_count + step
 end
@@ -20,6 +21,9 @@ local check_for_updates = a.void(function()
     end
 end)
 
+---@alias IndicatorFunction fun(count: number, manifest: { [string] = number }): string
+
+---@type IndicatorFunction
 local function make_indicator(count, manifest)
     return table.concat({'▲', count }, ' ')
 end
@@ -33,6 +37,10 @@ function M.get_statusline_indicator()
     end
 end
 
+---@class SetupOptions
+---@field make_indicator IndicatorFunction
+
+---@param opts SetupOptions
 function M.setup(opts)
     if opts ~= nil then
         if opts.make_indicator ~= nil then
