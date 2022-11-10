@@ -9,7 +9,7 @@ local function increment_count(step)
 end
 
 local check_for_updates = a.void(function()
-    local found = updates.check_for_updates()
+    local found = updates.check_for_updates() or {}
 
     vim.g.plugwatch_updates_count = 0
     vim.g.plugwatch_updates = found

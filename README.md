@@ -2,6 +2,18 @@
 
 Monitor all your (neo)vim plugins for updates.
 
+## About
+
+Plugin managers for (neo)vim are plentiful and full-featured for the most part,
+but the one feature I've noticed is missing from all of them is an indicator
+that there are updates available for your plugins.
+
+`plugwatch` ties into your plugin manager of choice, and gives you an indicator
+you can add your your statusline to show the number of updates available. It
+checks for updates on startup, and after your plugin manager installs updates.
+
+(All supported plugin managers are listed at the end of this README.)
+
 ## Installation
 
 ```lua
@@ -56,7 +68,25 @@ operations are done asynchronously. In fact, `plugwatch` started as a lua
 rewrite of a vimscript plugin that accomplishes similar goals, but with the
 intention of negating slow startup time that plagued that plugin.
 
+The way `plugwatch` checks for updates is by finding the directories for your
+plugins via your plugin manager, and doing a `git fetch` to see if there are any
+new upstream commits. It does this fetch on startup, and also whenever has been
+configured via the `setup_refresh` function for your plugin manager. As far as I
+know, you don't need to worry about rate limits from Github or other upstream
+repo hosts.
+
+## Is this available for regular Vim?
+
+No, and I have no plans to add support. Lua is much more pleasant to write with
+than Vimscript, and I made this specifically for my usage of Neovim +
+packer.nvim.
+
 ## Supported plugin managers
 
-Currently only `packer.nvim` is supported, but `plugwatch` is built in such a
-way that adding support for other plugin managers should be trivial.
+  * [packer.nvim](https://github.com/wbthomason/packer.nvim)
+  * [vim-plug](https://github.com/junegunn/vim-plug)
+  * [Vundle.vim](https://github.com/VundleVim/Vundle.vim)\*
+  * [dein.vim](https://github.com/Shougo/dein.vim)\*
+
+\*(Untested, but I think they should work. Let me know if it's not working for
+you.)
