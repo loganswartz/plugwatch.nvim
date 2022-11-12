@@ -3,6 +3,8 @@ local async_utils = require('plenary.async.util')
 
 local M = {}
 
+table.unpack = table.unpack or unpack -- Lua 5.1 compatibility
+
 ---@class PluginManager
 ---@field new fun(self: PluginManager, obj: table): PluginManager
 ---@field are_using fun(): boolean
