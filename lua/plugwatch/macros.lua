@@ -12,3 +12,5 @@ function M.refresh_on_buf_leave(ft)
         })
     end
 end
+
+return M
