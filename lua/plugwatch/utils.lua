@@ -4,6 +4,8 @@ local async_utils = require('plenary.async.util')
 
 local M = {}
 
+---@async
+---@type fun(options: table): (table, integer) Run a command asynchronously, and return the Job and the return code.
 function M.make_async_job(options)
     return a.wrap(function(callback)
         local function pack(job, rc) callback({ job, rc }) end
@@ -14,6 +16,10 @@ function M.make_async_job(options)
     end, 1)
 end
 
+---@async
+---@generic T
+---@param async_fns: (fun(): T)[]
+---@return T[]
 function M.join_assoc(async_fns)
     -- lock the keys into a specific order
     local keymap = vim.tbl_add_reverse_lookup(vim.tbl_keys(async_fns))
@@ -35,6 +41,9 @@ function M.join_assoc(async_fns)
     return results
 end
 
+---@generic T
+---@param ...T
+---@return T[]
 function M.collect(...)
     local arr = {}
     for v in ... do
@@ -43,6 +52,8 @@ function M.collect(...)
     return arr
 end
 
+---@param module table|string
+---@return table
 function M.find_files(module)
     if type(module) == 'table' then
         module = table.concat(module, '/')
@@ -69,6 +80,7 @@ function M.find_files(module)
     return converted
 end
 
+---@param namespace table|string
 -- Autoloads all modules inside the namespace, and returns a map of module_name => require('module_name')
 function M.autoload_submodule_map(namespace)
     if type(module) == 'table' then

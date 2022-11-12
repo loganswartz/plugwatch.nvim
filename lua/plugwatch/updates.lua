@@ -1,5 +1,5 @@
 local utils = require('plugwatch.utils')
-local Git = require('plugwatch.git')
+local CodeDirectory = require('plugwatch.types').CodeDirectory
 
 local M = {}
 
@@ -22,7 +22,7 @@ function M.check_for_updates()
     local plugins = manager.get_plugins()
     local jobs = vim.tbl_map(function(path)
         return function()
-            local repo = Git:new(path)
+            local repo = CodeDirectory:new(path)
             if not repo:is_git_repo() then
                 --[[ utils.anotify(repo:name() .. ' is not a Git repo.') ]]
                 return

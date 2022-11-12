@@ -8,6 +8,7 @@ local function increment_count(step)
     vim.g.plugwatch_updates_count = vim.g.plugwatch_updates_count + step
 end
 
+---@type fun()
 local check_for_updates = a.void(function()
     local found = updates.check_for_updates() or {}
 
@@ -21,13 +22,15 @@ local check_for_updates = a.void(function()
     end
 end)
 
----@alias IndicatorFunction fun(count: number, manifest: { [string] = number }): string
+---@alias PluginManifest { [string]: integer }
+---@alias IndicatorFunction fun(count: number, manifest: PluginManifest): string
 
 ---@type IndicatorFunction
 local function make_indicator(count, manifest)
     return table.concat({'▲', count }, ' ')
 end
 
+---@type fun(): string
 function M.get_statusline_indicator()
     local count = vim.g.plugwatch_updates_count or 0
     if count > 0 then
