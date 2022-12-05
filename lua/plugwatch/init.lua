@@ -1,5 +1,6 @@
 local a = require('plenary.async')
 local updates = require('plugwatch.updates')
+local config = require('plugwatch.config')
 
 local M = {}
 
@@ -8,8 +9,9 @@ local function increment_count(step)
     vim.g.plugwatch_updates_count = vim.g.plugwatch_updates_count + step
 end
 
+---@async
 ---@type fun()
-local check_for_updates = a.void(function()
+local async_update_check = a.void(function()
     local found = updates.check_for_updates() or {}
 
     vim.g.plugwatch_updates_count = 0
@@ -22,40 +24,51 @@ local check_for_updates = a.void(function()
     end
 end)
 
----@alias PluginManifest { [string]: integer }
----@alias IndicatorFunction fun(count: number, manifest: PluginManifest): string
-
----@type IndicatorFunction
-local function make_indicator(count, manifest)
-    return table.concat({'▲', count }, ' ')
+---@async
+-- Schedule a manual update check.
+--
+-- The public `check_for_updates` is just a getter for this method, which is
+-- private so that it can't be accidentally monkeypatched.
+local function _check_for_updates()
+    vim.schedule(async_update_check)
 end
 
 ---@type fun(): string
 function M.get_statusline_indicator()
     local count = vim.g.plugwatch_updates_count or 0
     if count > 0 then
-        return make_indicator(count, vim.g.plugwatch_updates)
-    else
         return ''
     end
+
+    return config.make_indicator(count, vim.g.plugwatch_updates)
 end
 
----@class SetupOptions
----@field make_indicator IndicatorFunction
+function M.plugins_with_updates()
+    local have_updates = {}
+    for plugin, count in pairs(vim.g.plugwatch_updates) do
+        if count > 0 then
+            have_updates[plugin] = count
+        end
+    end
 
----@param opts SetupOptions
+    return have_updates
+end
+
+---@async
+-- Schedule a manual update check.
+function M.check_for_updates()
+    _check_for_updates()
+end
+
+---@param opts Config
 function M.setup(opts)
     if opts ~= nil then
-        if opts.make_indicator ~= nil then
-            make_indicator = opts.make_indicator
-        end
+        vim.tbl_deep_extend('force', config, opts)
     end
 
     vim.g.plugwatch_updates_count = 0
 
-    local callback = function()
-        vim.schedule(check_for_updates)
-    end
+    local callback = _check_for_updates
 
     vim.api.nvim_create_autocmd('VimEnter', {
         callback = callback,

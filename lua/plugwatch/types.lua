@@ -39,7 +39,7 @@ end
 ---@field _git fun(self: CodeDirectory, options: table): (table, integer) Run a raw git command.
 ---@field is_git_repo fun(self: CodeDirectory): boolean Check if the directory is a repo.
 ---@field current_branch fun(self: CodeDirectory): string Get the current branch of the repo.
----@field fetch fun(self: CodeDirectory): boolean Fetch info on new remote commits on the repo.
+---@field fetch fun(self: CodeDirectory): nil Fetch info on new remote commits on the repo.
 ---@field new_commits fun(self: CodeDirectory): integer Get the number of commits between the local and remote head on the repo.
 ---@field update fun(self: CodeDirectory): integer Fetch then check the number of commits.
 
@@ -71,7 +71,7 @@ function M.CodeDirectory:_git(options)
 
     -- ensure the pipes are released
     while not (j:_pipes_are_closed(self) and j.is_shutdown) do
-        async_utils.sleep(100)
+        async_utils.sleep(50)
     end
 
     return j, rc
@@ -79,23 +79,37 @@ end
 
 ---@async
 function M.CodeDirectory:is_git_repo()
-    local job, _ = self:_git({
+    local job, rc = self:_git({
         args = { 'rev-parse', '--is-inside-work-tree' },
     })
     local stdout = job:result()[1]
 
-    return stdout and vim.trim(stdout) == 'true'
+    if rc ~= 0 then
+        error('Job failed with return code ' .. rc .. '.')
+    elseif not stdout then
+        error('Job failed (no stdout returned).')
+    end
+
+    return vim.trim(stdout) == 'true'
 end
 
 ---@async
 function M.CodeDirectory:current_branch()
-    local job, _ = self:_git({
+    local job, rc = self:_git({
         args = { 'branch', '--show-current' },
     })
 
+    if rc ~= 0 then
+        error('Job failed with return code ' .. rc .. '.')
+    end
+
     local stdout = job:result()[1]
 
-    return stdout and vim.trim(stdout)
+    if not stdout then
+        error('Job failed (no stdout returned).')
+    end
+
+    return vim.trim(stdout)
 end
 
 ---@async
@@ -104,25 +118,34 @@ function M.CodeDirectory:fetch()
         args = { 'remote', 'update' },
     })
 
-    return rc == 0
+    if rc ~= 0 then
+        error('Job failed with return code ' .. rc .. '.')
+    end
 end
 
 ---@async
 function M.CodeDirectory:new_commits()
     local current = self:current_branch()
-    if current == nil then
-        --[[ utils.anotify('Could not get current branch for ' .. self:name()) ]]
-        return
-    end
-
     local target = 'origin/' .. current
 
-    local job, _ = self:_git({
+    local job, rc = self:_git({
         args = { 'rev-list', 'HEAD..' .. target, '--count' },
     })
-    local stdout = job:result()[1]
+    if rc ~= 0 then
+        error('Job failed with return code ' .. rc .. '.')
+    end
 
-    return stdout and tonumber(vim.trim(stdout))
+    local stdout = job:result()[1]
+    if not stdout then
+        error('Job failed (no stdout returned).')
+    end
+
+    local count = tonumber(vim.trim(stdout))
+    if count == nil then
+        error('Job failed (failed to parse count).')
+    end
+
+    return count
 end
 
 ---@async
