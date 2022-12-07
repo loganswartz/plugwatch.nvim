@@ -36,7 +36,7 @@ end
 ---@type fun(): string
 function M.get_statusline_indicator()
     local count = vim.g.plugwatch_updates_count or 0
-    if count > 0 then
+    if count == 0 then
         return ''
     end
 
@@ -62,14 +62,10 @@ end
 
 ---@param opts Config
 function M.setup(opts)
-    if opts ~= nil then
-        vim.tbl_deep_extend('force', config, opts)
-    end
-
+    config.update(opts)
     vim.g.plugwatch_updates_count = 0
 
     local callback = _check_for_updates
-
     vim.api.nvim_create_autocmd('VimEnter', {
         callback = callback,
     })
